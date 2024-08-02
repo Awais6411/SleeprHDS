@@ -8,10 +8,10 @@ import { ReservationEntity } from './reservations/entities/reservation.entity';
 @Injectable()
 export class ReservationsService {
   constructor(private readonly reservationsRepo: ReservationsRepository) {}
-  create(createReservationDto: CreateReservationDto) {
+  create(createReservationDto: CreateReservationDto, user_id: number) {
     return this.reservationsRepo.create({
       ...createReservationDto,
-      user_id: 12,
+      user_id: user_id,
       invoice_id: 1,
     });
   }

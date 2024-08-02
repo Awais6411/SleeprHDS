@@ -6,6 +6,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
 import { LocalStrategy } from './strategies/local.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtAuthGuard } from '@app/common';
 @Module({
   imports: [
     UsersModule,
@@ -17,6 +19,7 @@ import { LocalStrategy } from './strategies/local.strategy';
         HOST: Joi.string().required(),
         DB_PORT: Joi.number().required(),
         APP_PORT: Joi.number().required(),
+        TCP_PORT: Joi.number().required(),
         USER_NAME: Joi.string().required(),
         PASSWORD: Joi.string().required(),
         DATABASE_NAME: Joi.string().required(),
@@ -28,13 +31,13 @@ import { LocalStrategy } from './strategies/local.strategy';
       useFactory: (configServcie: ConfigService) => ({
         secret: configServcie.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: `${configServcie.get('JWT_EXPIRATION')}d`,
+          expiresIn: `${configServcie.get('JWT_EXPIRATION')}s`,
         },
       }),
       inject: [ConfigService],
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy],
 })
 export class AuthModule {}
