@@ -1,8 +1,8 @@
-import { UserDto } from '@app/common';
+import { UserDto, CreateChargeDto } from '@app/common';
 import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
-import { CreateChargeDto } from '../../../libs/common/src/dto/create-charge.dto';
+// import { CreateChargeDto } from '../../../libs/common/src/dto/create-charge.dto';
 
 @Injectable()
 export class PaymentsService {
@@ -12,8 +12,6 @@ export class PaymentsService {
   );
   async createCharge({ message, amount }: CreateChargeDto, line_items: any) {
     try {
-      console.log({ message, amount });
-
       let session = await this.stripe.checkout.sessions.create({
         mode: 'payment',
         payment_method_types: ['card'],
@@ -22,6 +20,23 @@ export class PaymentsService {
         success_url: this.configService.get('STRIPE_SUCCESS_URL'),
         cancel_url: this.configService.get('STRIPE_CANCEL_URL'),
       });
+
+      return session;
+    } catch (error) {
+      throw new HttpException(error.message, error.status || 500);
+    }
+  }
+  async createCheckout(data: { email: string }, line_items: any) {
+    try {
+      let session = await this.stripe.checkout.sessions.create({
+        mode: 'payment',
+        payment_method_types: ['card'],
+        line_items: [line_items],
+        customer_email: data.email,
+        success_url: this.configService.get('STRIPE_SUCCESS_URL'),
+        cancel_url: this.configService.get('STRIPE_CANCEL_URL'),
+      });
+
       return session;
     } catch (error) {
       throw new HttpException(error.message, error.status || 500);

@@ -13,10 +13,6 @@ export class CreateReservationDto {
 
   @IsNumber()
   @IsNotEmpty()
-  user_id: number;
-
-  @IsNumber()
-  @IsNotEmpty()
   invoice_id: number;
 
   @IsNumber()
