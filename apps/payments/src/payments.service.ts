@@ -1,12 +1,17 @@
-import { UserDto, CreateChargeDto } from '@app/common';
-import { HttpException, Injectable } from '@nestjs/common';
+import { UserDto, CreateChargeDto, NOTIFICATIONS_SERVICE } from '@app/common';
+import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ClientProxy } from '@nestjs/microservices';
 import Stripe from 'stripe';
 // import { CreateChargeDto } from '../../../libs/common/src/dto/create-charge.dto';
 
 @Injectable()
 export class PaymentsService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    @Inject(NOTIFICATIONS_SERVICE)
+    private readonly notificationsService: ClientProxy,
+  ) {}
   private readonly stripe = new Stripe(
     this.configService.get('STRIPE_SECRET_KEY'),
   );
@@ -36,7 +41,7 @@ export class PaymentsService {
         success_url: this.configService.get('STRIPE_SUCCESS_URL'),
         cancel_url: this.configService.get('STRIPE_CANCEL_URL'),
       });
-
+      this.notificationsService.emit('notify_email', data);
       return session;
     } catch (error) {
       throw new HttpException(error.message, error.status || 500);

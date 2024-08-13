@@ -34,7 +34,7 @@ let ReservationsController = class ReservationsController {
         this.reservationsService = reservationsService;
     }
     async create(createReservationDto, user) {
-        return this.reservationsService.create(createReservationDto, user.id);
+        return this.reservationsService.create(createReservationDto, user);
     }
     async findAll() {
         return this.reservationsService.findAll();
@@ -135,6 +135,10 @@ exports.ReservationsModule = ReservationsModule = __decorate([
                     HOST: Joi.string().required(),
                     DB_PORT: Joi.number().required(),
                     APP_PORT: Joi.number().required(),
+                    AUTH_HOST: Joi.string().required(),
+                    AUTH_PORT: Joi.number().required(),
+                    PAYMENTS_HOST: Joi.string().required(),
+                    PAYMENTS_PORT: Joi.number().required(),
                     USER_NAME: Joi.string().required(),
                     PASSWORD: Joi.string().required(),
                     DATABASE_NAME: Joi.string().required(),
@@ -148,6 +152,17 @@ exports.ReservationsModule = ReservationsModule = __decorate([
                         options: {
                             host: configServcie.get('AUTH_HOST'),
                             port: configServcie.get('AUTH_PORT'),
+                        },
+                    }),
+                    inject: [config_1.ConfigService],
+                },
+                {
+                    name: common_2.PAYMENTS_SERVICE,
+                    useFactory: (configServcie) => ({
+                        transport: microservices_1.Transport.TCP,
+                        options: {
+                            host: configServcie.get('PAYMENTS_HOST'),
+                            port: configServcie.get('PAYMENTS_PORT'),
                         },
                     }),
                     inject: [config_1.ConfigService],
@@ -221,39 +236,57 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a;
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ReservationsService = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const reservations_repository_1 = __webpack_require__(/*! ./reservations.repository */ "./apps/reservations/src/reservations.repository.ts");
+const common_2 = __webpack_require__(/*! @app/common */ "./libs/common/src/index.ts");
+const microservices_1 = __webpack_require__(/*! @nestjs/microservices */ "@nestjs/microservices");
+const rxjs_1 = __webpack_require__(/*! rxjs */ "rxjs");
 let ReservationsService = class ReservationsService {
-    constructor(reservationsRepo) {
+    constructor(reservationsRepo, paymentService) {
         this.reservationsRepo = reservationsRepo;
+        this.paymentService = paymentService;
     }
-    create(createReservationDto, user_id) {
-        return this.reservationsRepo.create({
-            ...createReservationDto,
-            user_id: user_id,
-            invoice_id: 1,
-        });
+    async create(createReservationDto, user) {
+        try {
+            return this.paymentService
+                .send('create_checkout', { email: user.email })
+                .pipe((0, rxjs_1.map)(async (response) => {
+                const reservation = await this.reservationsRepo.create({
+                    ...createReservationDto,
+                    user_id: user.id,
+                    invoice_id: 1,
+                });
+                return { ...reservation, payment_url: response.url };
+            }));
+        }
+        catch (error) {
+            throw new common_1.HttpException(error.message, error.status || 500);
+        }
     }
-    findAll() {
+    async findAll() {
         return this.reservationsRepo.find({});
     }
-    findOne(id) {
+    async findOne(id) {
         return this.reservationsRepo.findOne({ id });
     }
-    update(id, updateReservationDto) {
+    async update(id, updateReservationDto) {
         return this.reservationsRepo.findOneAndUpdate({ id }, updateReservationDto);
     }
-    remove(id) {
+    async remove(id) {
         return this.reservationsRepo.findOneAndDelete({ id });
     }
 };
 exports.ReservationsService = ReservationsService;
 exports.ReservationsService = ReservationsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [typeof (_a = typeof reservations_repository_1.ReservationsRepository !== "undefined" && reservations_repository_1.ReservationsRepository) === "function" ? _a : Object])
+    __param(1, (0, common_1.Inject)(common_2.PAYMENTS_SERVICE)),
+    __metadata("design:paramtypes", [typeof (_a = typeof reservations_repository_1.ReservationsRepository !== "undefined" && reservations_repository_1.ReservationsRepository) === "function" ? _a : Object, typeof (_b = typeof microservices_1.ClientProxy !== "undefined" && microservices_1.ClientProxy) === "function" ? _b : Object])
 ], ReservationsService);
 
 
@@ -298,11 +331,6 @@ __decorate([
     (0, class_transformer_1.Type)(() => Date),
     __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
 ], CreateReservationDto.prototype, "end_date", void 0);
-__decorate([
-    (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", Number)
-], CreateReservationDto.prototype, "user_id", void 0);
 __decorate([
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.IsNotEmpty)(),
@@ -508,8 +536,10 @@ __exportStar(__webpack_require__(/*! ./services */ "./libs/common/src/constants/
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AUTH_SERVICE = void 0;
+exports.NOTIFICATIONS_SERVICE = exports.PAYMENTS_SERVICE = exports.AUTH_SERVICE = void 0;
 exports.AUTH_SERVICE = 'auth';
+exports.PAYMENTS_SERVICE = 'payments';
+exports.NOTIFICATIONS_SERVICE = 'notifications';
 
 
 /***/ }),
@@ -713,6 +743,22 @@ __exportStar(__webpack_require__(/*! ./current-user.decorator */ "./libs/common/
 
 /***/ }),
 
+/***/ "./libs/common/src/dto/create-charge.dto.ts":
+/*!**************************************************!*\
+  !*** ./libs/common/src/dto/create-charge.dto.ts ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CreateChargeDto = void 0;
+class CreateChargeDto {
+}
+exports.CreateChargeDto = CreateChargeDto;
+
+
+/***/ }),
+
 /***/ "./libs/common/src/dto/index.ts":
 /*!**************************************!*\
   !*** ./libs/common/src/dto/index.ts ***!
@@ -736,6 +782,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 __exportStar(__webpack_require__(/*! ./user.dto */ "./libs/common/src/dto/user.dto.ts"), exports);
+__exportStar(__webpack_require__(/*! ./create-charge.dto */ "./libs/common/src/dto/create-charge.dto.ts"), exports);
 
 
 /***/ }),

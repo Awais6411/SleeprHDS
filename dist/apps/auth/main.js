@@ -716,8 +716,10 @@ __exportStar(__webpack_require__(/*! ./services */ "./libs/common/src/constants/
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AUTH_SERVICE = void 0;
+exports.NOTIFICATIONS_SERVICE = exports.PAYMENTS_SERVICE = exports.AUTH_SERVICE = void 0;
 exports.AUTH_SERVICE = 'auth';
+exports.PAYMENTS_SERVICE = 'payments';
+exports.NOTIFICATIONS_SERVICE = 'notifications';
 
 
 /***/ }),
@@ -921,6 +923,22 @@ __exportStar(__webpack_require__(/*! ./current-user.decorator */ "./libs/common/
 
 /***/ }),
 
+/***/ "./libs/common/src/dto/create-charge.dto.ts":
+/*!**************************************************!*\
+  !*** ./libs/common/src/dto/create-charge.dto.ts ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CreateChargeDto = void 0;
+class CreateChargeDto {
+}
+exports.CreateChargeDto = CreateChargeDto;
+
+
+/***/ }),
+
 /***/ "./libs/common/src/dto/index.ts":
 /*!**************************************!*\
   !*** ./libs/common/src/dto/index.ts ***!
@@ -944,6 +962,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 __exportStar(__webpack_require__(/*! ./user.dto */ "./libs/common/src/dto/user.dto.ts"), exports);
+__exportStar(__webpack_require__(/*! ./create-charge.dto */ "./libs/common/src/dto/create-charge.dto.ts"), exports);
 
 
 /***/ }),
