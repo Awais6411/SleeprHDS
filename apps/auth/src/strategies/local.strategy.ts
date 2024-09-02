@@ -12,7 +12,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     try {
       return await this.userService.varifyUser(email, password);
     } catch (error) {
-      console.log('Error');
       throw new UnauthorizedException(error);
     }
   }
