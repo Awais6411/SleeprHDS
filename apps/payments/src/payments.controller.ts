@@ -8,6 +8,7 @@ import {
 import { PaymentsService } from './payments.service';
 import { CreateChargeDto, CurrentUser, UserDto } from '@app/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { NotifyEmailDto } from 'apps/notifications/src/dto/email-notify.dto';
 
 @Controller()
 export class PaymentsController {
@@ -28,7 +29,7 @@ export class PaymentsController {
   }
   @MessagePattern('create_checkout')
   @UsePipes(new ValidationPipe())
-  async createCheckout(@Payload() data: { email: string }) {
+  async createCheckout(@Payload() data: NotifyEmailDto) {
     let line_items = {
       price_data: {
         currency: 'usd',

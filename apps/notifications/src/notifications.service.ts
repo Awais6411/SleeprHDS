@@ -15,15 +15,20 @@ export class NotificationsService {
       refreshToken: this.configService.get('GOOGLE_OAUTH_REFRESH_TOKEN'),
     },
   });
+
   async notifyEMail(data: NotifyEmailDto) {
-    const { email } = data;
+    const { email, payment_url } = data;
     await this.transporter.sendMail({
       from: this.configService.get('SMTP_USER'),
       to: email,
       subject: 'SLEEPR NOTIFICATIONS',
       text: 'Congrats! Your stripe checkout payment link created successfully.',
+      html: `
+      <p>Congrats! Your stripe checkout payment link has been created successfully.</p>
+      <p><a href="${payment_url}">Click here to complete your payment</a></p>
+    `,
     });
-    console.log({ 'NOTIFICATIONS-TESTING:=> ': email });
+    console.log(`Notification sent to =>> ${email}`);
   }
   getHello(): string {
     return 'Hello World!';

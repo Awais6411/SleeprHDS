@@ -6,11 +6,10 @@ import * as Joi from 'joi';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['apps/payments/.env'],
+      envFilePath: ['apps/notifications/.env'],
       isGlobal: true,
       validationSchema: Joi.object({
         APP_PORT: Joi.number().required(),
-        STRIPE_SECRET_KEY: Joi.string().required(),
       }),
     }),
   ],

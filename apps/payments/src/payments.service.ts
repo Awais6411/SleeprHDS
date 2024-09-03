@@ -2,6 +2,7 @@ import { UserDto, CreateChargeDto, NOTIFICATIONS_SERVICE } from '@app/common';
 import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientProxy } from '@nestjs/microservices';
+import { NotifyEmailDto } from 'apps/notifications/src/dto/email-notify.dto';
 import Stripe from 'stripe';
 // import { CreateChargeDto } from '../../../libs/common/src/dto/create-charge.dto';
 
@@ -31,7 +32,7 @@ export class PaymentsService {
       throw new HttpException(error.message, error.status || 500);
     }
   }
-  async createCheckout(data: { email: string }, line_items: any) {
+  async createCheckout(data: NotifyEmailDto, line_items: any) {
     try {
       let session = await this.stripe.checkout.sessions.create({
         mode: 'payment',
@@ -41,6 +42,7 @@ export class PaymentsService {
         success_url: this.configService.get('STRIPE_SUCCESS_URL'),
         cancel_url: this.configService.get('STRIPE_CANCEL_URL'),
       });
+      data.payment_url = session.url;
       this.notificationsService.emit('notify_email', data);
       return session;
     } catch (error) {
