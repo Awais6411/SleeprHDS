@@ -3,4 +3,4 @@ dist
 apps/notifications/.env
 apps/auth/.env
 apps/payments/.env
-apps/reservations/.env.env
+apps/reservations/.env
