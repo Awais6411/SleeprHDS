@@ -1,12 +1,45 @@
-import { Controller, Get } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { PaymentsService } from './payments.service';
+import { CreateChargeDto, CurrentUser, UserDto } from '@app/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { NotifyEmailDto } from 'apps/notifications/src/dto/email-notify.dto';
 
 @Controller()
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
-
-  @Get()
-  getHello(): string {
-    return this.paymentsService.getHello();
+  @MessagePattern('create_charge')
+  async createCharge(@Payload() data: CreateChargeDto) {
+    let line_items = {
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'T-shirt',
+        },
+        unit_amount: 2000,
+      },
+      quantity: 1,
+    };
+    return await this.paymentsService.createCharge(data, line_items);
+  }
+  @MessagePattern('create_checkout')
+  @UsePipes(new ValidationPipe())
+  async createCheckout(@Payload() data: NotifyEmailDto) {
+    let line_items = {
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'T-shirt',
+        },
+        unit_amount: 2000,
+      },
+      quantity: 1,
+    };
+    return await this.paymentsService.createCheckout(data, line_items);
   }
 }
